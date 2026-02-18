@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management Lab | تاقیگەی بەڕێوەبردن</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #38bdf8;
+            --gold: #fbbf24;
+            --glass: rgba(255, 255, 255, 0.05);
+            --text: #f1f5f9;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Tahoma', sans-serif;
+            background: #020617;
+            background-image: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        .dashboard {
+            width: 95%;
+            max-width: 1100px;
+            height: 90vh;
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            overflow: hidden;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+        }
+
+        .sidebar {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 40px 25px;
+            border-left: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .badge {
+            background: linear-gradient(135deg, var(--accent), #1d4ed8);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .stat-label { font-size: 11px; color: var(--accent); font-weight: bold; }
+        .stat-value { font-size: 18px; font-weight: bold; margin-top: 5px; }
+
+        .main-content {
+            padding: 50px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #welcome-page { text-align: center; margin-top: 50px; }
+        .welcome-icon { font-size: 80px; color: var(--gold); margin-bottom: 25px; }
+        
+        .btn-prime {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 18px 45px;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 30px;
+        }
+
+        #quiz-page { display: none; }
+        .category-tag {
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 15px;
+            border: 1px solid var(--accent);
+        }
+
+        .case-text {
+            font-size: 20px;
+            line-height: 1.8;
+            margin-bottom: 35px;
+            border-right: 5px solid var(--gold);
+            padding-right: 20px;
+            text-align: right;
+        }
+
+        .options-list { display: grid; gap: 12px; }
+        .opt-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 18px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-align: right;
+            transition: 0.3s;
+        }
+        .opt-card:hover { background: rgba(56, 189, 248, 0.1); border-color: var(--accent); }
+        .opt-card.active { border-color: var(--gold); background: rgba(251, 191, 36, 0.05); }
+
+        #reason-box { display: none; margin-top: 30px; }
+        textarea {
+            width: 100%; height: 100px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px; color: white; padding: 15px; margin: 15px 0; font-family: inherit; resize: none;
+        }
+
+        #feedback { display: none; margin-top: 25px; padding: 25px; border-radius: 20px; text-align: right; }
+        .correct-f { border: 1px solid #22c55e; background: rgba(34, 197, 94, 0.1); color: #bbf7d0; }
+        .wrong-f { border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.1); color: #fecaca; }
+
+        @media (max-width: 850px) {
+            .dashboard { grid-template-columns: 1fr; height: 95vh; }
+            .sidebar { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="sidebar">
+        <div class="badge">ناوەندی بەڕێوەبردن</div>
+        <div class="stat-card">
+            <div class="stat-label">پلەی بەڕێوەبردن</div>
+            <div id="rank-val" class="stat-value">قوتابی سەرەتایی</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">نمرەی کۆکراوە</div>
+            <div id="score-val" class="stat-value">0 خاڵ</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">قۆناغە بڕدراوەکان</div>
+            <div id="progress-val" class="stat-value">0 / بێ سنوور</div>
+        </div>
+        <p style="margin-top: auto; font-size: 10px; opacity: 0.4; text-align: center;">سیستمی فێرکاری بەڕێوەبردن</p>
+    </div>
+
+    <div class="main-content">
+        <div id="welcome-page">
+            <div class="welcome-icon"><i class="fas fa-user-tie"></i></div>
+            <h1 class="welcome-title">بەخێرهاتن بەڕێوەبەرانی داهاتوو</h1>
+            <p style="opacity: 0.8; font-size: 18px;">ئامادەیت بۆ بڕیاردان لە کەیسە جیاوازەکانی بەڕێوەبردن؟</p>
+            <button class="btn-prime" onclick="startQuiz()">دەستپێکردن</button>
+        </div>
+
+        <div id="quiz-page">
+            <div id="cat-tag" class="category-tag">کەیسی زانستی</div>
+            <div id="case-text" class="case-text"></div>
+            <div id="options-box" class="options-list"></div>
+
+            <div id="reason-box">
+                <p style="color: var(--gold); font-size: 14px;"><i class="fas fa-pen-nib"></i> بۆچی ئەم بڕیارەت دا؟ (پاساوی زانستی)</p>
+                <textarea id="note-input" placeholder="هۆکاری بڕیارەکەت لێرە ڕوون بکەرەوە..."></textarea>
+                <button class="btn-prime" style="width: 100%; margin-top: 0;" onclick="submitDecision()">پەسەندکردنی بڕیار</button>
+            </div>
+
+            <div id="feedback">
+                <h3 id="status-text"></h3>
+                <p id="academic-note" style="margin: 15px 0; font-size: 16px;"></p>
+                <div id="feedback-btns"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const masterDatabase = [
+        { cat: "بەڕێوەبردنی ستراتیژی", case: "کۆمپانیایەک دەیەوێت بچێتە نێو بازاڕێکی نوێ، بەڵام پێویستە 'ژینگەی دەرەکی' هەڵبسەنگێنێت. کام ئامراز گونجاوە؟", opts: ["شیکردنەوەی PESTEL", "پشکنینی بودجەی ناوخۆ", "چاوپێکەوتنی فەرمانبەران", "فرۆشی ساڵی ڕابردوو"], correct: 0, note: "ڕوونکردنەوە: شیکردنەوەی PESTEL باشترین ئامرازە بۆ تێگەیشتن لە ژینگەی دەرەکی." },
+        { cat: "سەرچاوە مرۆییەکان", case: "فەرمانبەرەکان ورەیان نزم بووەتەوە. دەتەوێت هاندەرێکی مەعنەوییان بدەیتێ بەپێی تیۆری Herzberg. چی دەکەیت؟", opts: ["زیادکردنی کاتی پشوو", "پێدانی بەرپرسیاریەتی نوێ و ڕێزلێنان", "گۆڕینی ڕەنگی دیوارەکان", "زیادکردنی فشار"], correct: 1, note: "ڕوونکردنەوە: ڕێزلێنان و بەرپرسیاریەتی هاندەری ڕاستەقینەن بەپێی هێرزبێرگ." },
+        { cat: "بەڕێوەبردنی دارایی", case: "کۆمپانیاکەت قازانجی زۆرە، بەڵام پارەی نەختی (Cash) تێدا نەماوە بۆ کڕینی کەرەستە. ئەمە چ جۆرە کێشەیەکە؟", opts: ["کێشەی ناوبانگ", "قەیرانی نەختینە (Liquidity)", "کێشەی یاسایی", "کێشەی بەرهەمهێنان"], correct: 1, note: "ڕوونکردنەوە: قازانج جیاوازە لە نەختینە. بێ نەختینەیی دەبێتە هۆی پەککەوتنی کار." },
+        { cat: "مارکێتینگ", case: "بۆ داڕشتنی ستراتیژی مارکێتینگ، تەرکیز دەخەیتە سەر 'بەرهەم، نرخ، شوێن، و ڕیکلام'. ئەمە چییە؟", opts: ["SWOT Analysis", "تێکەڵەی مارکێتینگ (4Ps)", "BCG Matrix", "Value Chain"], correct: 1, note: "ڕوونکردنەوە: 4Ps چوارچێوەی سەرەکی پلانی مارکێتینگن." },
+        { cat: "بەڕێوەبردنی کردەکان", case: "دەتەوێت بەفیڕۆدان لە کارگەدا کەم بکەیتەوە و خێرا بەرهەم بگەیەنیت. کام فەلسەفە بەکاردێنیت؟", opts: ["بەڕێوەبردنی Lean / JIT", "بەرهەمهێنانی بەکۆمەڵ", "کۆنتڕۆڵی توند", "لێکۆڵینەوەی بازاڕ"], correct: 0, note: "ڕوونکردنەوە: Lean و Just-In-Time تەرکیز دەخەنە سەر کەمکردنەوەی زیان و کارایی." }
+    ];
+
+    let currentQuestions = [];
+    let current = 0;
+    let score = 0;
+    let totalCompleted = 0;
+    let selectedIdx = null;
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function startQuiz() {
+        document.getElementById('welcome-page').style.display = 'none';
+        document.getElementById('quiz-page').style.display = 'block';
+        currentQuestions = shuffle([...masterDatabase]);
+        current = 0;
+        loadCase();
+    }
+
+    function loadCase() {
+        if (current >= currentQuestions.length) {
+            currentQuestions = shuffle([...masterDatabase]);
+            current = 0;
+        }
+
+        const q = currentQuestions[current];
+        document.getElementById('cat-tag').innerText = q.cat;
+        document.getElementById('case-text').innerText = q.case;
+        
+        const box = document.getElementById('options-box');
+        box.innerHTML = '';
+        document.getElementById('reason-box').style.display = 'none';
+        document.getElementById('feedback').style.display = 'none';
+        document.getElementById('note-input').value = '';
+
+        q.opts.forEach((txt, idx) => {
+            const div = document.createElement('div');
+            div.className = 'opt-card';
+            div.innerText = `${idx + 1}. ${txt}`;
+            div.onclick = () => selectOption(idx, div);
+            box.appendChild(div);
+        });
+    }
+
+    function selectOption(idx, el) {
+        selectedIdx = idx;
+        document.querySelectorAll('.opt-card').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('reason-box').style.display = 'block';
+    }
+
+    function submitDecision() {
+        if(document.getElementById('note-input').value.trim().length < 5) {
+            alert("تکایە هۆکارێکی زانستی بنووسە.");
+            return;
+        }
+
+        const q = currentQuestions[current];
+        const isCorrect = (selectedIdx === q.correct);
+        const fb = document.getElementById('feedback');
+        const btnBox = document.getElementById('feedback-btns');
+        
+        fb.style.display = 'block';
+        btnBox.innerHTML = '';
+
+        if (isCorrect) {
+            fb.className = 'correct-f';
+            document.getElementById('status-text').innerText = "✓ بڕیارێکی زانستی و دروستە";
+            document.getElementById('academic-note').innerText = q.note;
+            
+            score += 10;
+            totalCompleted++;
+            updateStats();
+
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'btn-prime';
+            nextBtn.style.width = '100%';
+            nextBtn.innerText = 'بۆ کەیسی داهاتوو ➔';
+            nextBtn.onclick = nextQuestion;
+            btnBox.appendChild(nextBtn);
+        } else {
+            fb.className = 'wrong-f';
+            document.getElementById('status-text').innerText = "✗ وەڵامەکە هەڵەیە، دووبارە بیر بکەرەوە";
+            document.getElementById('academic-note').innerText = "تکایە جارێکی تر هەوڵ بدەرەوە تا وەڵامە ڕاستەکە دەدۆزیتەوە.";
+            
+            const retryBtn = document.createElement('button');
+            retryBtn.className = 'btn-prime';
+            retryBtn.style.width = '100%';
+            retryBtn.style.background = '#333'; retryBtn.style.color = '#fff';
+            retryBtn.innerText = 'دووبارە هەوڵدانەوە';
+            retryBtn.onclick = retryCase;
+            btnBox.appendChild(retryBtn);
+        }
+
+        document.getElementById('reason-box').style.display = 'none';
+        document.querySelectorAll('.opt-card').forEach(c => c.style.pointerEvents = 'none');
+    }
+
+    function retryCase() {
+        document.getElementById('feedback').style.display = 'none';
+        document.querySelectorAll('.opt-card').forEach(c => {
+            c.style.pointerEvents = 'auto';
+            c.classList.remove('active');
+        });
+        selectedIdx = null;
+    }
+
+    function nextQuestion() {
+        current++;
+        loadCase();
+    }
+
+    function updateStats() {
+        document.getElementById('score-val').innerText = `${score} خاڵ`;
+        document.getElementById('progress-val').innerText = `${totalCompleted} / بێ سنوور`;
+        let rank = "قوتابی سەرەتایی";
+        if(score >= 100) rank = "بەڕێوەبەری باڵا";
+        else if(score >= 50) rank = "بەڕێوەبەری ستراتیژی";
+        document.getElementById('rank-val').innerText = rank;
+    }
+</script>
+
+</body>
+</html>
